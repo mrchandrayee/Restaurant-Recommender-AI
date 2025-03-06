@@ -1,0 +1,80 @@
+{% extends "core/base.html" %}
+
+{% block title %}My Reservations{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow-md">
+    <h1 class="text-2xl font-bold mb-6">My Reservations</h1>
+    
+    {% if reservations %}
+        <div class="space-y-6">
+            {% for reservation in reservations %}
+                <div class="border rounded-lg p-4 {% if reservation.status == 'cancelled' %}bg-gray-50{% endif %}">
+                    <div class="flex flex-col md:flex-row md:justify-between">
+                        <div>
+                            <h2 class="text-lg font-bold">{{ reservation.restaurant.name }}</h2>
+                            <p class="text-gray-600">{{ reservation.restaurant.address }}</p>
+                            <div class="mt-2">
+                                <p>
+                                    <span class="font-semibold">Date & Time:</span> 
+                                    {{ reservation.reservation_time|date:"F j, Y, g:i a" }}
+                                </p>
+                                <p>
+                                    <span class="font-semibold">Party Size:</span> 
+                                    {{ reservation.party_size }} {% if reservation.party_size == 1 %}person{% else %}people{% endif %}
+                                </p>
+                                {% if reservation.special_requests %}
+                                    <p>
+                                        <span class="font-semibold">Special Requests:</span> 
+                                        {{ reservation.special_requests }}
+                                    </p>
+                                {% endif %}
+                                <p class="mt-2">
+                                    <span class="font-semibold">Status:</span>
+                                    <span class="
+                                        {% if reservation.status == 'confirmed' %}text-green-600
+                                        {% elif reservation.status == 'pending' %}text-yellow-600
+                                        {% else %}text-red-600{% endif %}
+                                    ">
+                                        {{ reservation.status|capfirst }}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 md:mt-0">
+                            <div class="space-y-2">
+                                <a href="{% url 'core:restaurant_detail' reservation.restaurant.id %}" class="inline-block text-indigo-600 hover:text-indigo-800">
+                                    View Restaurant
+                                </a>
+                                
+                                {% if reservation.status == 'confirmed' or reservation.status == 'pending' %}
+                                    <form method="post" action="{% url 'core:cancel_reservation' reservation.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-red-600 hover:text-red-800" onclick="return confirm('Are you sure you want to cancel this reservation?');">
+                                            Cancel Reservation
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="bg-gray-100 p-6 rounded-lg text-center">
+            <p class="text-gray-600">You don't have any reservations yet.</p>
+            <div class="mt-4">
+                <a href="{% url 'core:search_restaurants' %}" class="text-indigo-600 hover:text-indigo-800">
+                    Find a restaurant
+                </a>
+                <span class="mx-2 text-gray-400">or</span>
+                <a href="{% url 'core:chat_interface' %}" class="text-indigo-600 hover:text-indigo-800">
+                    Get recommendations
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

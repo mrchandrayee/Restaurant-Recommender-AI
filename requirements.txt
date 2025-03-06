@@ -1,0 +1,8 @@
+Django
+openai
+python-dotenv
+gunicorn
+whitenoise
+django-cors-headers
+pandas
+requests

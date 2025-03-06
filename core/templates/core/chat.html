@@ -1,0 +1,236 @@
+{% extends "core/base.html" %}
+
+{% block title %}Chat with Restaurant AI{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow-md">
+    <h1 class="text-2xl font-bold mb-4">Chat with Restaurant AI</h1>
+    <p class="text-gray-600 mb-6">
+        Get restaurant recommendations, check availability, or make reservations using our AI assistant.
+    </p>
+    
+    <div class="h-96 border rounded-lg mb-4">
+        <div id="chat-messages" class="h-full overflow-y-auto p-4 space-y-4">
+            <!-- Welcome message -->
+            <div class="flex items-start">
+                <div class="flex-shrink-0 bg-indigo-100 rounded-full p-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                </div>
+                <div class="ml-3 bg-gray-100 rounded-lg px-4 py-2 max-w-3xl">
+                    <p>Hello! I'm your Restaurant AI assistant. How can I help you today? You can ask me about:</p>
+                    <ul class="list-disc ml-6 mt-2">
+                        <li>Finding restaurants by cuisine, location, or price range</li>
+                        <li>Making restaurant reservations</li>
+                        <li>Personalized restaurant recommendations</li>
+                        <li>Checking restaurant availability</li>
+                    </ul>
+                </div>
+            </div>
+            <!-- Messages will be added here dynamically -->
+        </div>
+    </div>
+    
+    <form id="chat-form" class="flex space-x-2">
+        <input 
+            type="text" 
+            id="user-input" 
+            class="flex-1 border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            placeholder="Type your message here..."
+        />
+        <button 
+            type="submit" 
+            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded"
+        >
+            Send
+        </button>
+    </form>
+</div>
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const chatMessages = document.getElementById('chat-messages');
+        
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const message = userInput.value.trim();
+            if (!message) return;
+            
+            // Add user message to chat
+            addMessage('user', message);
+            
+            // Clear input
+            userInput.value = '';
+            
+            // Show typing indicator
+            const typingIndicator = addTypingIndicator();
+            
+            // Send message to backend
+            fetch('{% url "core:chat_api" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({message: message})
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Remove typing indicator
+                typingIndicator.remove();
+                
+                // Add AI response to chat
+                if (data.response) {
+                    addMessage('ai', data.response);
+                } else if (data.error) {
+                    addMessage('ai', `Sorry, I encountered an error: ${data.error}`);
+                }
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            })
+            .catch(error => {
+                // Remove typing indicator
+                typingIndicator.remove();
+                
+                console.error('Error:', error);
+                addMessage('ai', 'Sorry, I encountered an error while processing your request.');
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            });
+            
+            // Scroll to bottom after adding user message
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+        
+        function addMessage(sender, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex items-start';
+            
+            if (sender === 'user') {
+                messageDiv.innerHTML = `
+                    <div class="ml-auto flex items-start">
+                        <div class="bg-indigo-600 text-white rounded-lg px-4 py-2 max-w-3xl">
+                            <p>${escapeHTML(text)}</p>
+                        </div>
+                        <div class="flex-shrink-0 bg-gray-200 rounded-full p-2 ml-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                        </div>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="flex-shrink-0 bg-indigo-100 rounded-full p-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                    </div>
+                    <div class="ml-3 bg-gray-100 rounded-lg px-4 py-2 max-w-3xl">
+                        <p>${formatResponse(text)}</p>
+                    </div>
+                `;
+            }
+            
+            chatMessages.appendChild(messageDiv);
+        }
+        
+        function addTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'flex items-start typing-indicator';
+            typingDiv.innerHTML = `
+                <div class="flex-shrink-0 bg-indigo-100 rounded-full p-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                </div>
+                <div class="ml-3 bg-gray-100 rounded-lg px-4 py-2">
+                    <div class="flex space-x-1">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(typingDiv);
+            return typingDiv;
+        }
+        
+        function escapeHTML(str) {
+            return str.replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+        
+        function formatResponse(text) {
+            // Convert line breaks to <br>
+            text = text.replace(/\n/g, '<br>');
+            
+            // Highlight restaurant names with bold
+            text = text.replace(/^- (.+?)(?=:)/gm, '<strong>- $1</strong>');
+            text = text.replace(/^([🍽️] .+?)(?=\()/gm, '<strong>$1</strong>');
+            
+            return text;
+        }
+        
+        // Function to get CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+</script>
+
+<style>
+    .typing-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: #4f46e5;
+        display: inline-block;
+        animation: typing-animation 1.5s infinite ease-in-out;
+    }
+    
+    .typing-dot:nth-child(1) {
+        animation-delay: 0s;
+    }
+    
+    .typing-dot:nth-child(2) {
+        animation-delay: 0.5s;
+    }
+    
+    .typing-dot:nth-child(3) {
+        animation-delay: 1s;
+    }
+    
+    @keyframes typing-animation {
+        0%, 60%, 100% {
+            transform: translateY(0);
+        }
+        30% {
+            transform: translateY(-5px);
+        }
+    }
+</style>
+{% endblock %}
+{% endblock %}

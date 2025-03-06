@@ -1,0 +1,290 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Restaurant AI Chat{% endblock %}
+
+{% block extra_head %}
+<!-- Add Markdown parser -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<!-- Add highlight.js for code syntax highlighting -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white shadow-md rounded-lg p-4">
+        <h2 class="text-2xl font-bold mb-4 text-indigo-700">Restaurant AI Assistant</h2>
+        <p class="text-gray-600 mb-4">
+            Hello! I'm your restaurant assistant powered by GPT-4.5. Ask me about restaurants, cuisines, recommendations, or help with reservations.
+        </p>
+
+        <!-- Chat messages container -->
+        <div id="chat-messages" class="h-80 overflow-y-auto mb-4 p-3 border border-gray-200 rounded-lg">
+            <div class="flex mb-3">
+                <div class="bg-indigo-100 rounded-lg py-2 px-4 max-w-[80%]">
+                    <p class="text-gray-800">Hi there! I'm your AI restaurant assistant powered by GPT-4.5. How can I help you find the perfect restaurant today?</p>
+                </div>
+            </div>
+            <!-- Messages will be added here dynamically -->
+        </div>
+
+        <!-- Chat input form -->
+        <form id="chat-form" class="flex space-x-2">
+            {% csrf_token %}
+            <input 
+                type="text" 
+                id="user-message" 
+                class="flex-1 border border-gray-300 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+                placeholder="Type your message here..."
+                autocomplete="off"
+            >
+            <button 
+                type="submit"
+                class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-200"
+                id="send-button"
+            >
+                <i class="fas fa-paper-plane mr-1"></i> Send
+            </button>
+        </form>
+    </div>
+
+    <!-- Suggestions -->
+    <div class="mt-6 bg-white shadow-md rounded-lg p-4">
+        <h3 class="text-lg font-semibold mb-2 text-gray-700">Try asking:</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div class="suggestion-item p-2 bg-gray-50 rounded-md hover:bg-gray-100 cursor-pointer">
+                "Find Italian restaurants in downtown"
+            </div>
+            <div class="suggestion-item p-2 bg-gray-50 rounded-md hover:bg-gray-100 cursor-pointer">
+                "What are the best vegetarian options nearby?"
+            </div>
+            <div class="suggestion-item p-2 bg-gray-50 rounded-md hover:bg-gray-100 cursor-pointer">
+                "Help me make a reservation for 4 people tomorrow at 7pm"
+            </div>
+            <div class="suggestion-item p-2 bg-gray-50 rounded-md hover:bg-gray-100 cursor-pointer">
+                "What restaurants have outdoor seating and good wine selection?"
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    $(document).ready(function() {
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        let currentStreamingResponse = null;
+        
+        // Initialize marked for rendering markdown
+        marked.setOptions({
+            renderer: new marked.Renderer(),
+            highlight: function(code, language) {
+                const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
+                return hljs.highlight(validLanguage, code).value;
+            },
+            pedantic: false,
+            gfm: true,
+            breaks: true,
+            sanitize: false,
+            smartypants: false,
+            xhtml: false
+        });
+        
+        // Function to add a message to the chat
+        function addMessage(message, isUser, isMarkdown = false) {
+            const messageDiv = $('<div>').addClass('flex mb-3');
+            
+            if (isUser) {
+                messageDiv.addClass('justify-end');
+                const innerDiv = $('<div>').addClass('bg-indigo-600 text-white rounded-lg py-2 px-4 max-w-[80%]');
+                innerDiv.append($('<p>').text(message));
+                messageDiv.append(innerDiv);
+            } else {
+                const innerDiv = $('<div>').addClass('bg-indigo-100 rounded-lg py-2 px-4 max-w-[80%]');
+                const contentPara = $('<div>').addClass('text-gray-800');
+                
+                if (isMarkdown) {
+                    contentPara.html(marked.parse(message));
+                    // Apply syntax highlighting to code blocks
+                    innerDiv.find('pre code').each(function(i, block) {
+                        hljs.highlightBlock(block);
+                    });
+                } else {
+                    contentPara.text(message);
+                }
+                
+                innerDiv.append(contentPara);
+                messageDiv.append(innerDiv);
+            }
+            
+            $('#chat-messages').append(messageDiv);
+            $('#chat-messages').scrollTop($('#chat-messages')[0].scrollHeight);
+            
+            return messageDiv;
+        }
+        
+        // Function to create streaming response container
+        function createStreamingResponseContainer() {
+            const messageDiv = $('<div>').addClass('flex mb-3');
+            const innerDiv = $('<div>').addClass('bg-indigo-100 rounded-lg py-2 px-4 max-w-[80%]');
+            const contentPara = $('<div>').addClass('text-gray-800 bot-response');
+            
+            innerDiv.append(contentPara);
+            messageDiv.append(innerDiv);
+            $('#chat-messages').append(messageDiv);
+            
+            return { 
+                container: messageDiv, 
+                contentElement: contentPara 
+            };
+        }
+        
+        // Function to update streaming response
+        function updateStreamingResponse(container, content) {
+            container.contentElement.html(marked.parse(content));
+            // Apply syntax highlighting
+            container.container.find('pre code').each(function(i, block) {
+                hljs.highlightBlock(block);
+            });
+            $('#chat-messages').scrollTop($('#chat-messages')[0].scrollHeight);
+        }
+        
+        // Handle form submission
+        $('#chat-form').submit(function(e) {
+            e.preventDefault();
+            
+            const userMessage = $('#user-message').val().trim();
+            if (!userMessage) return;
+            
+            // Disable the input field and send button
+            $('#user-message').prop('disabled', true);
+            $('#send-button').prop('disabled', true).addClass('opacity-50');
+            
+            // Add user message to chat
+            addMessage(userMessage, true);
+            
+            // Clear input field
+            $('#user-message').val('');
+            
+            // Create streaming response container
+            currentStreamingResponse = createStreamingResponseContainer();
+            
+            // Initialize empty response content
+            let fullResponse = '';
+            
+            // Use fetch for Streaming API support
+            fetch('/api/chat/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                    'Accept': 'text/event-stream'
+                },
+                body: JSON.stringify({ message: userMessage })
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                
+                // Check if Response is SSE or regular JSON
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('text/event-stream')) {
+                    // Handle streaming response
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    
+                    function readStream() {
+                        return reader.read().then(({ done, value }) => {
+                            if (done) {
+                                // Enable the input field and send button when stream ends
+                                $('#user-message').prop('disabled', false).focus();
+                                $('#send-button').prop('disabled', false).removeClass('opacity-50');
+                                return;
+                            }
+                            
+                            const chunk = decoder.decode(value, { stream: true });
+                            // Process the chunk data which could contain multiple SSE messages
+                            const lines = chunk.split('\n').filter(line => line.trim() !== '');
+                            
+                            for (const line of lines) {
+                                if (line.startsWith('data: ')) {
+                                    const eventData = line.slice(6);
+                                    if (eventData === '[DONE]') {
+                                        // Stream completed
+                                        continue;
+                                    }
+                                    
+                                    try {
+                                        const parsed = JSON.parse(eventData);
+                                        if (parsed.choices && parsed.choices[0] && parsed.choices[0].delta && parsed.choices[0].delta.content) {
+                                            fullResponse += parsed.choices[0].delta.content;
+                                            updateStreamingResponse(currentStreamingResponse, fullResponse);
+                                        }
+                                    } catch (e) {
+                                        console.error('Error parsing SSE data:', e);
+                                    }
+                                }
+                            }
+                            
+                            // Continue reading
+                            return readStream();
+                        });
+                    }
+                    
+                    return readStream();
+                } else {
+                    // Handle regular JSON response
+                    return response.json().then(data => {
+                        // Remove streaming container
+                        currentStreamingResponse.container.remove();
+                        currentStreamingResponse = null;
+                        
+                        // Enable the input field and send button
+                        $('#user-message').prop('disabled', false).focus();
+                        $('#send-button').prop('disabled', false).removeClass('opacity-50');
+                        
+                        // Add AI response to chat
+                        addMessage(data.response, false, true);
+                    });
+                }
+            }).catch(error => {
+                // Remove streaming container if it exists
+                if (currentStreamingResponse) {
+                    currentStreamingResponse.container.remove();
+                    currentStreamingResponse = null;
+                }
+                
+                // Enable the input field and send button
+                $('#user-message').prop('disabled', false).focus();
+                $('#send-button').prop('disabled', false).removeClass('opacity-50');
+                
+                // Add error message
+                const errorDiv = $('<div>').addClass('flex mb-3');
+                const errorInner = $('<div>').addClass('bg-red-100 text-red-700 rounded-lg py-2 px-4 max-w-[80%]');
+                errorInner.append($('<p>').text("Sorry, there was an error processing your request. Please try again."));
+                errorDiv.append(errorInner);
+                $('#chat-messages').append(errorDiv);
+                $('#chat-messages').scrollTop($('#chat-messages')[0].scrollHeight);
+                
+                console.error("Error:", error);
+            });
+        });
+        
+        // Handle suggestion clicks
+        $('.suggestion-item').click(function() {
+            const text = $(this).text().trim();
+            $('#user-message').val(text);
+            $('#chat-form').submit();
+        });
+        
+        // Enable pressing Enter to send message
+        $('#user-message').keydown(function(e) {
+            if (e.keyCode === 13 && !e.shiftKey) {
+                e.preventDefault();
+                $('#chat-form').submit();
+            }
+        });
+    });
+</script>
+{% endblock %}

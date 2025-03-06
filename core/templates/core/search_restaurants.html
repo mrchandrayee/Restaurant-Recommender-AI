@@ -1,0 +1,216 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Search Restaurants{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Find Your Perfect Restaurant</h1>
+    
+    <div class="row">
+        <!-- Search Filters -->
+        <div class="col-md-3 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Filters</h5>
+                </div>
+                <div class="card-body">
+                    <form id="searchForm">
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" name="location" placeholder="Enter city or area">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="cuisine" class="form-label">Cuisine Type</label>
+                            <select class="form-control" id="cuisine" name="cuisine">
+                                <option value="">All Cuisines</option>
+                                <option value="Italian">Italian</option>
+                                <option value="Chinese">Chinese</option>
+                                <option value="Mexican">Mexican</option>
+                                <option value="Indian">Indian</option>
+                                <option value="Japanese">Japanese</option>
+                                <option value="American">American</option>
+                                <option value="French">French</option>
+                                <option value="Thai">Thai</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="price" class="form-label">Price Range</label>
+                            <select class="form-control" id="price" name="price">
+                                <option value="">Any Price</option>
+                                <option value="$">$ (Inexpensive)</option>
+                                <option value="$$">$$ (Moderate)</option>
+                                <option value="$$$">$$$ (Expensive)</option>
+                                <option value="$$$$">$$$$ (Very Expensive)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Dietary Options</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="dietary[]" value="Vegetarian" id="vegetarian">
+                                <label class="form-check-label" for="vegetarian">Vegetarian</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="dietary[]" value="Vegan" id="vegan">
+                                <label class="form-check-label" for="vegan">Vegan</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="dietary[]" value="Gluten-free" id="gluten-free">
+                                <label class="form-check-label" for="gluten-free">Gluten-free</label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="rating_min" class="form-label">Minimum Rating</label>
+                            <select class="form-control" id="rating_min" name="rating_min">
+                                <option value="">Any Rating</option>
+                                <option value="3">3+ Stars</option>
+                                <option value="4">4+ Stars</option>
+                                <option value="4.5">4.5+ Stars</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="order_by" class="form-label">Sort By</label>
+                            <select class="form-control" id="order_by" name="order_by">
+                                <option value="-rating">Highest Rated</option>
+                                <option value="name">Name (A-Z)</option>
+                                <option value="-name">Name (Z-A)</option>
+                                <option value="price_range">Price (Low to High)</option>
+                                <option value="-price_range">Price (High to Low)</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">Search</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Search Results -->
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between mb-3">
+                <h3>Results <span id="resultCount" class="badge bg-secondary">0</span></h3>
+                <div id="loadingSpinner" class="spinner-border text-primary d-none" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            
+            <div id="searchResults" class="row">
+                <!-- Results will be inserted here via JavaScript -->
+                <div class="col-12 text-center py-5">
+                    <p class="text-muted">Use the filters to find restaurants</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Search form submission
+        $('#searchForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading spinner
+            $('#loadingSpinner').removeClass('d-none');
+            
+            // Get form data
+            const formData = $(this).serialize();
+            
+            // Make AJAX request
+            $.ajax({
+                url: "{% url 'core:restaurant_search' %}",
+                type: "GET",
+                data: formData,
+                success: function(response) {
+                    // Hide loading spinner
+                    $('#loadingSpinner').addClass('d-none');
+                    
+                    // Update result count
+                    $('#resultCount').text(response.results.length);
+                    
+                    // Clear previous results
+                    $('#searchResults').empty();
+                    
+                    if (response.results.length === 0) {
+                        $('#searchResults').html(
+                            '<div class="col-12 text-center py-5">' +
+                            '<p class="text-muted">No restaurants found matching your criteria.</p>' +
+                            '</div>'
+                        );
+                        return;
+                    }
+                    
+                    // Display results
+                    response.results.forEach(function(restaurant) {
+                        let priceDisplay = '';
+                        for (let i = 0; i < restaurant.price_range.length; i++) {
+                            priceDisplay += '$';
+                        }
+                        
+                        $('#searchResults').append(`
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="row g-0">
+                                        <div class="col-md-4">
+                                            <img src="${restaurant.image_url || '/static/core/img/default_restaurant.jpg'}" 
+                                                class="img-fluid rounded-start h-100 w-100" 
+                                                alt="${restaurant.name}" 
+                                                style="object-fit: cover;">
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div class="card-body">
+                                                <h5 class="card-title">${restaurant.name}</h5>
+                                                <p class="card-text">
+                                                    <span class="badge bg-info">${restaurant.cuisine_type}</span>
+                                                    <span class="badge bg-secondary">${priceDisplay}</span>
+                                                </p>
+                                                <p class="card-text">
+                                                    <i class="bi bi-star-fill text-warning"></i> 
+                                                    <strong>${restaurant.rating}</strong>/5
+                                                </p>
+                                                <p class="card-text small text-muted">${restaurant.address}</p>
+                                                <a href="/restaurant/${restaurant.id}/" class="btn btn-outline-primary btn-sm">View Details</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                    });
+                },
+                error: function(error) {
+                    // Hide loading spinner
+                    $('#loadingSpinner').addClass('d-none');
+                    
+                    // Show error message
+                    $('#searchResults').html(
+                        '<div class="col-12 text-center py-5">' +
+                        '<div class="alert alert-danger" role="alert">' +
+                        'Error loading restaurants. Please try again.' +
+                        '</div>' +
+                        '</div>'
+                    );
+                    console.error(error);
+                }
+            });
+        });
+        
+        // Trigger a search when the page loads with default values
+        if (window.location.search) {
+            // If there are URL parameters, the form will be auto-populated
+            // and we should trigger a search
+            setTimeout(function() {
+                $('#searchForm').submit();
+            }, 500);
+        }
+    });
+</script>
+{% endblock %}

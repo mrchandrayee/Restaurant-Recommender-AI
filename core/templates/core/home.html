@@ -1,0 +1,57 @@
+{% extends "core/base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow-md mb-6">
+    <h1 class="text-3xl font-bold mb-4">Welcome to Restaurant AI</h1>
+    <p class="text-gray-600 mb-4">
+        Find the perfect restaurant, make reservations, and get personalized recommendations using our AI-powered system.
+    </p>
+    
+    <div class="flex space-x-4 mt-6">
+        <a href="{% url 'core:search_restaurants' %}" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
+            Search Restaurants
+        </a>
+        <a href="{% url 'core:chat_interface' %}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+            Chat with Restaurant AI
+        </a>
+    </div>
+</div>
+
+<!-- Popular Restaurants Section -->
+<div class="bg-white p-6 rounded-lg shadow-md">
+    <h2 class="text-2xl font-bold mb-4">Popular Restaurants</h2>
+    
+    {% if popular_restaurants %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for restaurant in popular_restaurants %}
+        <div class="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+            <div class="p-4">
+                <h3 class="text-xl font-bold">{{ restaurant.name }}</h3>
+                <p class="text-gray-500">{{ restaurant.cuisine_type }} • {{ restaurant.price_range }}</p>
+                <p class="text-yellow-500 my-2">
+                    {% for i in "12345"|make_list %}
+                        {% if forloop.counter <= restaurant.rating %}
+                            ★
+                        {% else %}
+                            ☆
+                        {% endif %}
+                    {% endfor %}
+                    {{ restaurant.rating|floatformat:1 }}
+                </p>
+                <p class="text-gray-600 text-sm">{{ restaurant.address }}</p>
+                <div class="mt-4">
+                    <a href="{% url 'core:restaurant_detail' restaurant.id %}" class="text-indigo-600 hover:text-indigo-800">
+                        View Details →
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-gray-500">No restaurants available at the moment.</p>
+    {% endif %}
+</div>
+{% endblock %}

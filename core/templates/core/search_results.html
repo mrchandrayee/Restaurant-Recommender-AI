@@ -1,0 +1,81 @@
+{% extends "core/base.html" %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow-md mb-6">
+    <h1 class="text-2xl font-bold mb-4">Search Restaurants</h1>
+    
+    <!-- Search Form -->
+    <form method="get" action="{% url 'core:search_restaurants' %}" class="mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="q">
+                    Restaurant Name
+                </label>
+                <input type="text" id="q" name="q" value="{{ query }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="cuisine">
+                    Cuisine Type
+                </label>
+                <input type="text" id="cuisine" name="cuisine" value="{{ cuisine }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="price_range">
+                    Price Range
+                </label>
+                <select id="price_range" name="price_range" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="">Any Price</option>
+                    <option value="$" {% if price_range == '$' %}selected{% endif %}>$ (Inexpensive)</option>
+                    <option value="$$" {% if price_range == '$$' %}selected{% endif %}>$$ (Moderate)</option>
+                    <option value="$$$" {% if price_range == '$$$' %}selected{% endif %}>$$$ (Expensive)</option>
+                    <option value="$$$$" {% if price_range == '$$$$' %}selected{% endif %}>$$$$ (Very Expensive)</option>
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">
+                    Search
+                </button>
+            </div>
+        </div>
+    </form>
+    
+    <!-- Search Results -->
+    <h2 class="text-xl font-bold mb-3">Results</h2>
+    
+    {% if restaurants %}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for restaurant in restaurants %}
+                <div class="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold">{{ restaurant.name }}</h3>
+                        <p class="text-gray-500">{{ restaurant.cuisine_type }} • {{ restaurant.price_range }}</p>
+                        <p class="text-yellow-500 my-2">
+                            {% for i in "12345"|make_list %}
+                                {% if forloop.counter <= restaurant.rating %}
+                                    ★
+                                {% else %}
+                                    ☆
+                                {% endif %}
+                            {% endfor %}
+                            {{ restaurant.rating|floatformat:1 }}
+                        </p>
+                        <p class="text-gray-600 text-sm">{{ restaurant.address }}</p>
+                        <div class="mt-4">
+                            <a href="{% url 'core:restaurant_detail' restaurant.id %}" class="text-indigo-600 hover:text-indigo-800">
+                                View Details →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="bg-gray-100 p-4 rounded text-center">
+            <p>No restaurants found matching your criteria.</p>
+            <p class="text-sm text-gray-500 mt-2">Try adjusting your search parameters or <a href="{% url 'core:chat_interface' %}" class="text-indigo-600 hover:text-indigo-800">chat with our AI assistant</a> for personalized recommendations.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
