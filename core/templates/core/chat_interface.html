@@ -11,59 +11,112 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
 {% endblock %}
 
-{% block content %}
-<div class="max-w-4xl mx-auto">
-    <div class="bg-white shadow-md rounded-lg p-4">
-        <h2 class="text-2xl font-bold mb-4 text-indigo-700">Restaurant AI Assistant</h2>
-        <p class="text-gray-600 mb-4">
-            Hello! I'm your restaurant assistant powered by GPT-4.5. Ask me about restaurants, cuisines, recommendations, or help with reservations.
-        </p>
+{% extends 'core/base.html' %}
+{% load static %}
 
-        <!-- Chat messages container -->
-        <div id="chat-messages" class="h-80 overflow-y-auto mb-4 p-3 border border-gray-200 rounded-lg">
-            <div class="flex mb-3">
-                <div class="bg-indigo-100 rounded-lg py-2 px-4 max-w-[80%]">
-                    <p class="text-gray-800">Hi there! I'm your AI restaurant assistant powered by GPT-4.5. How can I help you find the perfect restaurant today?</p>
+{% block title %}AI Restaurant Assistant{% endblock %}
+
+{% block extra_head %}
+<!-- Add Markdown parser -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<!-- Add highlight.js for code syntax highlighting -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Chat Header -->
+            <div class="card shadow-custom mb-4">
+                <div class="chat-header">
+                    <h2 class="mb-0">
+                        <i class="bi bi-robot me-2"></i>AI Restaurant Assistant
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-0">
+                        Hello! I'm your intelligent restaurant assistant powered by advanced AI. Ask me about restaurant recommendations, reservations, cuisines, or dining experiences.
+                    </p>
                 </div>
             </div>
-            <!-- Messages will be added here dynamically -->
-        </div>
 
-        <!-- Chat input form -->
-        <form id="chat-form" class="flex space-x-2">
-            {% csrf_token %}
-            <input 
-                type="text" 
-                id="user-message" 
-                class="flex-1 border border-gray-300 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500" 
-                placeholder="Type your message here..."
-                autocomplete="off"
-            >
-            <button 
-                type="submit"
-                class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-200"
-                id="send-button"
-            >
-                <i class="fas fa-paper-plane mr-1"></i> Send
-            </button>
-        </form>
-    </div>
+            <!-- Chat Container -->
+            <div class="chat-container card shadow-custom mb-4">
+                <div id="chat-messages" class="chat-messages">
+                    <div class="message bot">
+                        <div class="content">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-robot text-primary me-2"></i>
+                                <strong>RestaurantAI</strong>
+                            </div>
+                            <p class="mb-0">Hi there! I'm your AI restaurant assistant. How can I help you find the perfect dining experience today?</p>
+                        </div>
+                    </div>
+                    <!-- Messages will be added here dynamically -->
+                </div>
 
-    <!-- Suggestions -->
-    <div class="mt-6 bg-white shadow-md rounded-lg p-4">
-        <h3 class="text-lg font-semibold mb-2 text-gray-700">Try asking:</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <div class="suggestion-item p-2 bg-gray-50 rounded-md hover:bg-gray-100 cursor-pointer">
-                "Find Italian restaurants in downtown"
+                <!-- Chat Input -->
+                <div class="card-body border-top">
+                    <form id="chat-form" class="d-flex gap-3">
+                        {% csrf_token %}
+                        <div class="flex-grow-1">
+                            <textarea
+                                id="user-message"
+                                class="form-control form-control-lg"
+                                placeholder="Type your message here... (Press Enter to send, Shift+Enter for new line)"
+                                rows="1"
+                                autocomplete="off"
+                                style="resize: none; min-height: 50px; max-height: 120px;"
+                            ></textarea>
+                        </div>
+                        <button
+                            type="submit"
+                            class="btn btn-primary btn-lg px-4"
+                            id="send-button"
+                        >
+                            <i class="bi bi-send-fill me-2"></i>Send
+                        </button>
+                    </form>
+                </div>
             </div>
-            <div class="suggestion-item p-2 bg-gray-50 rounded-md hover:bg-gray-100 cursor-pointer">
-                "What are the best vegetarian options nearby?"
-            </div>
-            <div class="suggestion-item p-2 bg-gray-50 rounded-md hover:bg-gray-100 cursor-pointer">
-                "Help me make a reservation for 4 people tomorrow at 7pm"
-            </div>
-            <div class="suggestion-item p-2 bg-gray-50 rounded-md hover:bg-gray-100 cursor-pointer">
-                "What restaurants have outdoor seating and good wine selection?"
+
+            <!-- Quick Suggestions -->
+            <div class="card shadow-custom">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightbulb text-warning me-2"></i>Quick Suggestions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <div class="suggestion-item p-3 bg-light rounded-custom border cursor-pointer transition-all hover-shadow">
+                                <i class="bi bi-geo-alt text-primary me-2"></i>
+                                "Find Italian restaurants in downtown"
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="suggestion-item p-3 bg-light rounded-custom border cursor-pointer transition-all hover-shadow">
+                                <i class="bi bi-leaf text-success me-2"></i>
+                                "What are the best vegetarian options nearby?"
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="suggestion-item p-3 bg-light rounded-custom border cursor-pointer transition-all hover-shadow">
+                                <i class="bi bi-calendar-check text-info me-2"></i>
+                                "Help me make a reservation for 4 people tomorrow at 7pm"
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="suggestion-item p-3 bg-light rounded-custom border cursor-pointer transition-all hover-shadow">
+                                <i class="bi bi-wine-glass text-danger me-2"></i>
+                                "What restaurants have outdoor seating and good wine selection?"
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

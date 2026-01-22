@@ -1,57 +1,170 @@
 {% extends "core/base.html" %}
 
-{% block title %}Home{% endblock %}
+{% block title %}Home - RestaurantAI{% endblock %}
 
 {% block content %}
-<div class="bg-white p-6 rounded-lg shadow-md mb-6">
-    <h1 class="text-3xl font-bold mb-4">Welcome to Restaurant AI</h1>
-    <p class="text-gray-600 mb-4">
-        Find the perfect restaurant, make reservations, and get personalized recommendations using our AI-powered system.
-    </p>
-    
-    <div class="flex space-x-4 mt-6">
-        <a href="{% url 'core:search_restaurants' %}" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
-            Search Restaurants
-        </a>
-        <a href="{% url 'core:chat_interface' %}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-            Chat with Restaurant AI
-        </a>
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1>Discover Your Perfect Dining Experience</h1>
+            <p class="lead">Let our AI-powered restaurant assistant help you find the best places to eat, make reservations, and create unforgettable dining memories.</p>
+            <div class="hero-buttons">
+                <a href="{% url 'core:search_restaurants' %}" class="btn-primary-custom">
+                    <i class="bi bi-search me-2"></i>Explore Restaurants
+                </a>
+                <a href="{% url 'core:chat_interface' %}" class="btn-secondary-custom">
+                    <i class="bi bi-chat-dots me-2"></i>Chat with AI Assistant
+                </a>
+            </div>
+        </div>
     </div>
-</div>
+</section>
 
-<!-- Popular Restaurants Section -->
-<div class="bg-white p-6 rounded-lg shadow-md">
-    <h2 class="text-2xl font-bold mb-4">Popular Restaurants</h2>
-    
-    {% if popular_restaurants %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for restaurant in popular_restaurants %}
-        <div class="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-            <div class="p-4">
-                <h3 class="text-xl font-bold">{{ restaurant.name }}</h3>
-                <p class="text-gray-500">{{ restaurant.cuisine_type }} • {{ restaurant.price_range }}</p>
-                <p class="text-yellow-500 my-2">
-                    {% for i in "12345"|make_list %}
-                        {% if forloop.counter <= restaurant.rating %}
-                            ★
-                        {% else %}
-                            ☆
-                        {% endif %}
-                    {% endfor %}
-                    {{ restaurant.rating|floatformat:1 }}
-                </p>
-                <p class="text-gray-600 text-sm">{{ restaurant.address }}</p>
-                <div class="mt-4">
-                    <a href="{% url 'core:restaurant_detail' restaurant.id %}" class="text-indigo-600 hover:text-indigo-800">
-                        View Details →
-                    </a>
+<!-- Features Section -->
+<section class="features-section">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="text-gradient mb-3">Why Choose RestaurantAI?</h2>
+                <p class="text-muted lead">Experience the future of restaurant discovery with our intelligent features</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <h3>AI-Powered Recommendations</h3>
+                    <p>Get personalized restaurant suggestions based on your preferences, dietary restrictions, and past dining experiences.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+                    <h3>Instant Reservations</h3>
+                    <p>Book tables at your favorite restaurants with just a few clicks. Real-time availability and instant confirmation.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i class="bi bi-star"></i>
+                    </div>
+                    <h3>Curated Reviews</h3>
+                    <p>Read authentic reviews from fellow diners and share your own experiences to help others discover great places.</p>
                 </div>
             </div>
         </div>
-        {% endfor %}
     </div>
-    {% else %}
-    <p class="text-gray-500">No restaurants available at the moment.</p>
-    {% endif %}
-</div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <span class="stat-number">10,000+</span>
+                    <span class="stat-label">Restaurants</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <span class="stat-number">500K+</span>
+                    <span class="stat-label">Happy Customers</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <span class="stat-number">4.8★</span>
+                    <span class="stat-label">Average Rating</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <span class="stat-number">24/7</span>
+                    <span class="stat-label">AI Support</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Popular Restaurants Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <h2 class="text-gradient mb-3">Popular Restaurants</h2>
+                <p class="text-muted lead">Discover the most loved dining spots in your area</p>
+            </div>
+        </div>
+
+        {% if popular_restaurants %}
+        <div class="row g-4">
+            {% for restaurant in popular_restaurants %}
+            <div class="col-lg-4 col-md-6">
+                <div class="card restaurant-card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title">{{ restaurant.name }}</h3>
+                        <p class="text-muted mb-2">{{ restaurant.cuisine_type }} • {{ restaurant.price_range }}</p>
+                        <div class="rating mb-2">
+                            <div class="rating-stars">
+                                {% for star in restaurant.stars %}
+                                    {% if star %}
+                                        <i class="bi bi-star-fill filled"></i>
+                                    {% else %}
+                                        <i class="bi bi-star empty"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <span class="fw-bold">{{ restaurant.rating|floatformat:1 }}</span>
+                        </div>
+                        <p class="address text-muted small mb-3">{{ restaurant.address }}</p>
+                        <a href="{% url 'core:restaurant_detail' restaurant.id %}" class="btn btn-primary w-100">
+                            <i class="bi bi-eye me-2"></i>View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="bi bi-search text-muted" style="font-size: 4rem;"></i>
+            </div>
+            <h4 class="text-muted mb-3">No Restaurants Available</h4>
+            <p class="text-muted mb-4">We're working on adding amazing restaurants to our platform. Check back soon!</p>
+            <a href="{% url 'core:search_restaurants' %}" class="btn btn-primary">
+                <i class="bi bi-search me-2"></i>Browse All Restaurants
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h2 class="mb-3">Ready to Find Your Next Favorite Restaurant?</h2>
+                <p class="text-muted lead mb-0">Join thousands of food lovers who trust RestaurantAI for their dining decisions.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                <a href="{% url 'register' %}" class="btn btn-primary btn-lg me-3">
+                    <i class="bi bi-person-plus me-2"></i>Get Started
+                </a>
+                <a href="{% url 'core:chat_interface' %}" class="btn btn-outline-primary btn-lg">
+                    <i class="bi bi-chat-dots me-2"></i>Try AI Chat
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
 {% endblock %}

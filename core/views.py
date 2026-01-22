@@ -55,10 +55,66 @@ def register(request):
 
 def home(request):
     """Home page view that displays popular restaurants."""
-    # For now, we'll just render the template
-    # Later we can add logic to fetch popular restaurants, etc.
+    # Sample popular restaurants data for demonstration
+    popular_restaurants = [
+        {
+            'id': 1,
+            'name': 'Bella Vista Italian Kitchen',
+            'cuisine_type': 'Italian',
+            'price_range': '$$$',
+            'rating': 4.8,
+            'address': '123 Main St, Downtown',
+            'stars': [True, True, True, True, True]  # 5 stars
+        },
+        {
+            'id': 2,
+            'name': 'Sakura Japanese Fusion',
+            'cuisine_type': 'Japanese',
+            'price_range': '$$',
+            'rating': 4.6,
+            'address': '456 Oak Ave, Midtown',
+            'stars': [True, True, True, True, False]  # 4 stars
+        },
+        {
+            'id': 3,
+            'name': 'Taco Fiesta Mexican Grill',
+            'cuisine_type': 'Mexican',
+            'price_range': '$',
+            'rating': 4.4,
+            'address': '789 Pine St, Uptown',
+            'stars': [True, True, True, True, False]  # 4 stars
+        },
+        {
+            'id': 4,
+            'name': 'Le Gourmet French Bistro',
+            'cuisine_type': 'French',
+            'price_range': '$$$$',
+            'rating': 4.9,
+            'address': '321 Elm St, Riverside',
+            'stars': [True, True, True, True, True]  # 5 stars
+        },
+        {
+            'id': 5,
+            'name': 'Spice Route Indian Cuisine',
+            'cuisine_type': 'Indian',
+            'price_range': '$$',
+            'rating': 4.7,
+            'address': '654 Maple Dr, Westside',
+            'stars': [True, True, True, True, True]  # 5 stars
+        },
+        {
+            'id': 6,
+            'name': 'Ocean Blue Seafood House',
+            'cuisine_type': 'Seafood',
+            'price_range': '$$$',
+            'rating': 4.5,
+            'address': '987 Harbor View, Waterfront',
+            'stars': [True, True, True, True, False]  # 4 stars
+        }
+    ]
+
     return render(request, 'core/home.html', {
-        'popular_restaurants': []  # Empty for now, can be populated later
+        'popular_restaurants': popular_restaurants
     })
 
 @csrf_exempt

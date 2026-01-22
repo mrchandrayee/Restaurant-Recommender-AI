@@ -3,79 +3,183 @@
 
 {% block title %}Search Restaurants{% endblock %}
 
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Search Restaurants - RestaurantAI{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <h1 class="mb-4">Find Your Perfect Restaurant</h1>
-    
+<div class="container py-5">
+    <!-- Page Header -->
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h1 class="text-gradient mb-3">Find Your Perfect Restaurant</h1>
+            <p class="text-muted lead">Discover amazing dining experiences with our intelligent search and filtering system</p>
+        </div>
+    </div>
+
     <div class="row">
-        <!-- Search Filters -->
-        <div class="col-md-3 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Filters</h5>
+        <!-- Search Filters Sidebar -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-custom sticky-top" style="top: 100px;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-funnel me-2"></i>Search Filters
+                    </h5>
                 </div>
                 <div class="card-body">
                     <form id="searchForm">
-                        <div class="mb-3">
-                            <label for="location" class="form-label">Location</label>
-                            <input type="text" class="form-control" id="location" name="location" placeholder="Enter city or area">
+                        <div class="mb-4">
+                            <label for="location" class="form-label fw-bold">
+                                <i class="bi bi-geo-alt text-primary me-1"></i>Location
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="location" name="location" placeholder="Enter city or area">
                         </div>
-                        
-                        <div class="mb-3">
-                            <label for="cuisine" class="form-label">Cuisine Type</label>
-                            <select class="form-control" id="cuisine" name="cuisine">
+
+                        <div class="mb-4">
+                            <label for="cuisine" class="form-label fw-bold">
+                                <i class="bi bi-cup-hot text-primary me-1"></i>Cuisine Type
+                            </label>
+                            <select class="form-select form-select-lg" id="cuisine" name="cuisine">
                                 <option value="">All Cuisines</option>
-                                <option value="Italian">Italian</option>
-                                <option value="Chinese">Chinese</option>
-                                <option value="Mexican">Mexican</option>
-                                <option value="Indian">Indian</option>
-                                <option value="Japanese">Japanese</option>
-                                <option value="American">American</option>
-                                <option value="French">French</option>
-                                <option value="Thai">Thai</option>
+                                <option value="Italian">🍝 Italian</option>
+                                <option value="Chinese">🥢 Chinese</option>
+                                <option value="Mexican">🌮 Mexican</option>
+                                <option value="Indian">🍛 Indian</option>
+                                <option value="Japanese">🍱 Japanese</option>
+                                <option value="American">🍔 American</option>
+                                <option value="French">🥖 French</option>
+                                <option value="Thai">🍜 Thai</option>
+                                <option value="Mediterranean">🫒 Mediterranean</option>
+                                <option value="Korean">🍲 Korean</option>
+                                <option value="Vietnamese">🥘 Vietnamese</option>
                             </select>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label for="price" class="form-label">Price Range</label>
-                            <select class="form-control" id="price" name="price">
+
+                        <div class="mb-4">
+                            <label for="price" class="form-label fw-bold">
+                                <i class="bi bi-cash text-primary me-1"></i>Price Range
+                            </label>
+                            <select class="form-select form-select-lg" id="price" name="price">
                                 <option value="">Any Price</option>
-                                <option value="$">$ (Inexpensive)</option>
-                                <option value="$$">$$ (Moderate)</option>
-                                <option value="$$$">$$$ (Expensive)</option>
-                                <option value="$$$$">$$$$ (Very Expensive)</option>
+                                <option value="$">$ - Budget Friendly</option>
+                                <option value="$$">$$ - Moderate</option>
+                                <option value="$$$">$$$ - Upscale</option>
+                                <option value="$$$$">$$$$ - Fine Dining</option>
                             </select>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Dietary Options</label>
-                            <div class="form-check">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-heart text-primary me-1"></i>Dietary Options
+                            </label>
+                            <div class="form-check mb-2">
                                 <input class="form-check-input" type="checkbox" name="dietary[]" value="Vegetarian" id="vegetarian">
-                                <label class="form-check-label" for="vegetarian">Vegetarian</label>
+                                <label class="form-check-label" for="vegetarian">
+                                    <i class="bi bi-leaf text-success me-1"></i>Vegetarian
+                                </label>
                             </div>
-                            <div class="form-check">
+                            <div class="form-check mb-2">
                                 <input class="form-check-input" type="checkbox" name="dietary[]" value="Vegan" id="vegan">
-                                <label class="form-check-label" for="vegan">Vegan</label>
+                                <label class="form-check-label" for="vegan">
+                                    <i class="bi bi-tree text-success me-1"></i>Vegan
+                                </label>
                             </div>
-                            <div class="form-check">
+                            <div class="form-check mb-2">
                                 <input class="form-check-input" type="checkbox" name="dietary[]" value="Gluten-free" id="gluten-free">
-                                <label class="form-check-label" for="gluten-free">Gluten-free</label>
+                                <label class="form-check-label" for="gluten-free">
+                                    <i class="bi bi-shield-check text-info me-1"></i>Gluten-free
+                                </label>
                             </div>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label for="rating_min" class="form-label">Minimum Rating</label>
-                            <select class="form-control" id="rating_min" name="rating_min">
+
+                        <div class="mb-4">
+                            <label for="rating_min" class="form-label fw-bold">
+                                <i class="bi bi-star text-warning me-1"></i>Minimum Rating
+                            </label>
+                            <select class="form-select form-select-lg" id="rating_min" name="rating_min">
                                 <option value="">Any Rating</option>
-                                <option value="3">3+ Stars</option>
-                                <option value="4">4+ Stars</option>
-                                <option value="4.5">4.5+ Stars</option>
+                                <option value="3">⭐ 3+ Stars</option>
+                                <option value="4">⭐⭐⭐⭐ 4+ Stars</option>
+                                <option value="4.5">⭐⭐⭐⭐⭐ 4.5+ Stars</option>
                             </select>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label for="order_by" class="form-label">Sort By</label>
-                            <select class="form-control" id="order_by" name="order_by">
+
+                        <div class="mb-4">
+                            <label for="order_by" class="form-label fw-bold">
+                                <i class="bi bi-sort-down text-primary me-1"></i>Sort By
+                            </label>
+                            <select class="form-select form-select-lg" id="order_by" name="order_by">
+                                <option value="rating">Highest Rated</option>
+                                <option value="price">Price (Low to High)</option>
+                                <option value="name">Name (A-Z)</option>
+                                <option value="distance">Distance</option>
+                            </select>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-search me-2"></i>Search Restaurants
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="clearFilters">
+                                <i class="bi bi-x-circle me-2"></i>Clear Filters
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Results -->
+        <div class="col-lg-8">
+            <!-- Search Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">Search Results</h2>
+                    <p class="text-muted mb-0" id="resultsCount">Showing 0 restaurants</p>
+                </div>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary active" id="gridView">
+                        <i class="bi bi-grid"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="listView">
+                        <i class="bi bi-list"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="text-center py-5 d-none">
+                <div class="spinner mb-3"></div>
+                <p class="text-muted">Searching for restaurants...</p>
+            </div>
+
+            <!-- Results Container -->
+            <div id="resultsContainer" class="row g-4">
+                <!-- Results will be loaded here dynamically -->
+            </div>
+
+            <!-- No Results -->
+            <div id="noResults" class="text-center py-5 d-none">
+                <div class="mb-4">
+                    <i class="bi bi-search text-muted" style="font-size: 4rem;"></i>
+                </div>
+                <h4 class="text-muted mb-3">No restaurants found</h4>
+                <p class="text-muted mb-4">Try adjusting your search criteria or browse all restaurants.</p>
+                <a href="{% url 'core:home' %}" class="btn btn-primary">
+                    <i class="bi bi-house me-2"></i>Browse All Restaurants
+                </a>
+            </div>
+
+            <!-- Pagination -->
+            <nav id="paginationNav" class="mt-5 d-none">
+                <ul class="pagination justify-content-center" id="pagination">
+                    <!-- Pagination will be loaded here -->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+{% endblock %}
                                 <option value="-rating">Highest Rated</option>
                                 <option value="name">Name (A-Z)</option>
                                 <option value="-name">Name (Z-A)</option>
